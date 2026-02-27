@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Sohail | Portfolio</title>
+
   <style>
     body {
       margin: 0;
@@ -26,26 +27,39 @@
       font-size: 18px;
     }
 
-    .btn {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 12px 25px;
-      background: #3b82f6;
-      color: white;
-      text-decoration: none;
-      border-radius: 30px;
-    }
-
     .section {
       padding: 60px 20px;
     }
 
     .card {
       background: #1e293b;
-      padding: 20px;
+      padding: 25px;
       margin: 20px auto;
-      max-width: 600px;
+      max-width: 400px;
       border-radius: 15px;
+    }
+
+    input {
+      width: 90%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      background: #3b82f6;
+      color: white;
+    }
+
+    button:hover {
+      background: #2563eb;
     }
 
     footer {
@@ -63,19 +77,22 @@
   <h1>Hi, I'm Sohail 👋</h1>
   <p>Web Developer | Learner | Creator</p>
 </header>
+
 <div class="section">
   <h2>Login / Sign Up</h2>
 
   <div class="card">
-    <input type="email" id="email" placeholder="Enter Email"><br><br>
-    <input type="password" id="password" placeholder="Enter Password"><br><br>
+    <input type="email" id="email" placeholder="Enter Email">
+    <input type="password" id="password" placeholder="Enter Password">
 
+    <br>
     <button onclick="signUp()">Sign Up</button>
     <button onclick="login()">Login</button>
 
     <p id="message"></p>
   </div>
 </div>
+
 <div class="section">
   <h2>About Me</h2>
   <div class="card">
@@ -86,15 +103,23 @@
 <footer>
   © 2026 Sohail
 </footer>
-  <script type="module">
-  // Import the functions you need from the SDKs you need
+
+<script type="module">
+
+  /* =========================
+     🔹 IMPORTS (ALWAYS TOP)
+  ========================== */
+
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword }
+  from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+
+  /* =========================
+     🔹 FIREBASE CONFIG
+  ========================== */
+
   const firebaseConfig = {
     apiKey: "AIzaSyAuKSZXx5xzNppUovxxpo089j4ffsCwEYI",
     authDomain: "website-flux-1.firebaseapp.com",
@@ -105,9 +130,51 @@
     measurementId: "G-ZG5C2JL079"
   };
 
-  // Initialize Firebase
+
+  /* =========================
+     🔹 INITIALIZE FIREBASE
+  ========================== */
+
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
+  const auth = getAuth(app);
+
+
+  /* =========================
+     🔹 SIGN UP FUNCTION
+  ========================== */
+
+  window.signUp = function () {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(() => {
+        document.getElementById("message").innerText = "Account Created ✅";
+      })
+      .catch((error) => {
+        document.getElementById("message").innerText = error.message;
+      });
+  };
+
+
+  /* =========================
+     🔹 LOGIN FUNCTION
+  ========================== */
+
+  window.login = function () {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    signInWithEmailAndPassword(auth, email, password)
+      .then(() => {
+        document.getElementById("message").innerText = "Login Successful 🎉";
+      })
+      .catch((error) => {
+        document.getElementById("message").innerText = error.message;
+      });
+  };
+
 </script>
 
 </body>
