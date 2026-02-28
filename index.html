@@ -45,28 +45,19 @@ body{
   background:#1e293b;
   padding:25px;
   border-radius:15px;
-  margin-bottom:30px;
-  transition:0.3s;
+  margin-bottom:40px;
 }
 
-.post:hover{
-  transform:translateY(-3px);
-}
-
-.post h2{
-  margin:0 0 10px 0;
-  font-weight:500;
-}
-
-.date{
-  font-size:14px;
-  color:#94a3b8;
+.post img{
+  width:100%;
+  border-radius:12px;
   margin-bottom:15px;
 }
 
-.post p{
-  line-height:1.6;
-  color:#e2e8f0;
+.date{
+  font-size:13px;
+  color:#94a3b8;
+  margin-top:15px;
 }
 </style>
 </head>
@@ -106,29 +97,29 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 async function loadPosts(){
-  const container = document.getElementById("posts");
-  container.innerHTML = "";
+  const container=document.getElementById("posts");
+  container.innerHTML="";
 
-  const q = query(collection(db,"posts"), orderBy("createdAt","desc"));
-  const snapshot = await getDocs(q);
+  const q=query(collection(db,"posts"),orderBy("createdAt","desc"));
+  const snapshot=await getDocs(q);
 
   snapshot.forEach((doc)=>{
-    const data = doc.data();
+    const data=doc.data();
 
-    let formattedDate = "";
-
+    let formattedDate="";
     if(data.createdAt){
-      const dateObj = new Date(data.createdAt.seconds * 1000);
-      formattedDate = dateObj.toDateString();
+      const dateObj=data.createdAt.toDate();
+      formattedDate=dateObj.toDateString();
     }
 
-    const post = document.createElement("div");
+    const post=document.createElement("div");
     post.className="post";
 
-    post.innerHTML = `
-      <h2>${data.title}</h2>
-      <div class="date">${formattedDate}</div>
+    post.innerHTML=`
+      ${data.imageUrl ? `<img src="${data.imageUrl}">` : ""}
+      ${data.title ? `<h2>${data.title}</h2>` : ""}
       <p>${data.content}</p>
+      <div class="date">${formattedDate}</div>
     `;
 
     container.appendChild(post);
