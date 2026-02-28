@@ -13,7 +13,6 @@ body{
   text-align:center;
 }
 .card{
-  
   background:#1e293b;
   padding:25px;
   margin:40px auto;
@@ -66,7 +65,7 @@ from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } 
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
-import { getFirestore, collection, addDoc } 
+import { getFirestore, collection, addDoc, serverTimestamp } 
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -91,10 +90,10 @@ window.login = function(){
   signInWithEmailAndPassword(auth,email,password)
   .then((userCred)=>{
     if(userCred.user.email!==ADMIN_EMAIL){
-      alert("Access Denied");
+      alert("Access Denied ❌");
       return;
     }
-    document.getElementById("msg").innerText="Login Success";
+    document.getElementById("msg").innerText="Login Success ✅";
   })
   .catch(err=>{
     document.getElementById("msg").innerText=err.message;
@@ -111,9 +110,15 @@ window.publishPost = async function(){
   const title=document.getElementById("title").value;
   const content=document.getElementById("content").value;
 
+  if(!title || !content){
+    alert("Fill all fields");
+    return;
+  }
+
   await addDoc(collection(db,"posts"),{
     title,
-    content
+    content,
+    createdAt: serverTimestamp()
   });
 
   alert("Post Published 🚀");
