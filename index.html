@@ -46,10 +46,24 @@
       border-radius: 10px;
     }
 
+    button {
+      padding: 8px 15px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      background: crimson;
+      color: white;
+    }
+
     footer {
       padding: 20px;
       background: #020617;
       font-size: 14px;
+      color: gray;
+    }
+
+    small {
       color: gray;
     }
   </style>
@@ -80,20 +94,15 @@
 
 <script type="module">
 
-  /* =========================
-     🔹 IMPORTS
-  ========================== */
-
   import { initializeApp } 
   from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 
-  import { getFirestore, collection, getDocs, query, orderBy } 
+  import { getFirestore, collection, getDocs, query, orderBy, deleteDoc, doc } 
   from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
+  import { getAuth, onAuthStateChanged } 
+  from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
-  /* =========================
-     🔹 FIREBASE CONFIG
-  ========================== */
 
   const firebaseConfig = {
     apiKey: "AIzaSyAuKSZXx5xzNppUovxxpo089j4ffsCwEYI",
@@ -105,18 +114,18 @@
     measurementId: "G-ZG5C2JL079"
   };
 
-
-  /* =========================
-     🔹 INITIALIZE FIREBASE
-  ========================== */
-
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  const auth = getAuth(app);
 
+  const ADMIN_EMAIL = "sohail34ks@gmail.com";
+  let currentUser = null;
 
-  /* =========================
-     🔹 LOAD POSTS FROM FIRESTORE
-  ========================== */
+  onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    loadPosts();
+  });
+
 
   async function loadPosts() {
     const postsDiv = document.getElementById("posts");
@@ -125,8 +134,10 @@
     const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
     const querySnapshot = await getDocs(q);
 
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
+    querySnapshot.forEach((document) => {
+
+      const data = document.data();
+      const postId = document.id;
 
       const postElement = document.createElement("div");
       postElement.className = "card";
@@ -135,11 +146,25 @@
         <h3>${data.title}</h3>
         <p>${data.content}</p>
         ${data.imageUrl ? `<img src="${data.imageUrl}">` : ""}
+        <br>
+        <small>
+          ${data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleString() : ""}
+        </small>
+        ${
+          currentUser && currentUser.email === ADMIN_EMAIL
+            ? `<br><button onclick="deletePost('${postId}')">Delete</button>`
+            : ""
+        }
       `;
 
       postsDiv.appendChild(postElement);
     });
   }
+
+  window.deletePost = async function(id) {
+    await deleteDoc(doc(db, "posts", id));
+    loadPosts();
+  };
 
   loadPosts();
 
