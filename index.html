@@ -17,16 +17,6 @@
       padding: 80px 20px;
     }
 
-    h1 {
-      font-size: 48px;
-      margin-bottom: 10px;
-    }
-
-    p {
-      color: #cbd5e1;
-      font-size: 18px;
-    }
-
     .section {
       padding: 60px 20px;
     }
@@ -44,20 +34,6 @@
       width: 100%;
       margin-top: 15px;
       border-radius: 10px;
-    }
-
-    button {
-      padding: 8px 15px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 15px;
-      cursor: pointer;
-      background: crimson;
-      color: white;
-    }
-
-    small {
-      color: gray;
     }
 
     footer {
@@ -94,73 +70,47 @@
 
 <script type="module">
 
-  import { initializeApp } 
-  from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { initializeApp } 
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 
-  import { getFirestore, collection, getDocs, deleteDoc, doc } 
-  from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs } 
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-  import { getAuth, onAuthStateChanged } 
-  from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyAuKSZXx5xzNppUovxxpo089j4ffsCwEYI",
+  authDomain: "website-flux-1.firebaseapp.com",
+  projectId: "website-flux-1",
+  storageBucket: "website-flux-1.firebasestorage.app",
+  messagingSenderId: "130732049094",
+  appId: "1:130732049094:web:673a20cb507984a5430dc7"
+};
 
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAuKSZXx5xzNppUovxxpo089j4ffsCwEYI",
-    authDomain: "website-flux-1.firebaseapp.com",
-    projectId: "website-flux-1",
-    storageBucket: "website-flux-1.firebasestorage.app",
-    messagingSenderId: "130732049094",
-    appId: "1:130732049094:web:673a20cb507984a5430dc7",
-    measurementId: "G-ZG5C2JL079"
-  };
+async function loadPosts() {
+  const postsDiv = document.getElementById("posts");
+  postsDiv.innerHTML = "";
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth(app);
+  const snapshot = await getDocs(collection(db, "posts"));
 
-  const ADMIN_EMAIL = "sohail34ks@gmail.com";
-  let currentUser = null;
+  snapshot.forEach((doc) => {
+    const data = doc.data();
 
-  onAuthStateChanged(auth, (user) => {
-    currentUser = user;
-    loadPosts();
+    const post = document.createElement("div");
+    post.className = "card";
+
+    post.innerHTML = `
+      <h3>${data.title}</h3>
+      <p>${data.content}</p>
+      ${data.imageUrl ? `<img src="${data.imageUrl}">` : ""}
+    `;
+
+    postsDiv.appendChild(post);
   });
+}
 
-  async function loadPosts() {
-    const postsDiv = document.getElementById("posts");
-    postsDiv.innerHTML = "";
-
-    const querySnapshot = await getDocs(collection(db, "posts"));
-
-    querySnapshot.forEach((document) => {
-
-      const data = document.data();
-      const postId = document.id;
-
-      const postElement = document.createElement("div");
-      postElement.className = "card";
-
-      postElement.innerHTML = `
-        <h3>${data.title}</h3>
-        <p>${data.content}</p>
-        ${data.imageUrl ? `<img src="${data.imageUrl}">` : ""}
-        ${
-          currentUser && currentUser.email === ADMIN_EMAIL
-            ? `<br><button onclick="deletePost('${postId}')">Delete</button>`
-            : ""
-        }
-      `;
-
-      postsDiv.appendChild(postElement);
-    });
-  }
-
-  window.deletePost = async function(id) {
-    await deleteDoc(doc(db, "posts", id));
-    loadPosts();
-  };
-
-  loadPosts();
+loadPosts();
 
 </script>
 
