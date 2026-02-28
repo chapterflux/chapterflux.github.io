@@ -1,80 +1,61 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Sohail | Portfolio</title>
+<meta charset="UTF-8">
+<title>Sohail | Blog</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #0f172a;
-      color: white;
-      text-align: center;
-    }
-
-    header {
-      padding: 80px 20px;
-    }
-
-    .section {
-      padding: 60px 20px;
-    }
-
-    .card {
-      background: #1e293b;
-      padding: 25px;
-      margin: 20px auto;
-      max-width: 600px;
-      border-radius: 15px;
-      text-align: left;
-    }
-
-    img {
-      width: 100%;
-      margin-top: 15px;
-      border-radius: 10px;
-    }
-
-    footer {
-      padding: 20px;
-      background: #020617;
-      font-size: 14px;
-      color: gray;
-    }
-  </style>
+<style>
+body{
+  margin:0;
+  font-family:Segoe UI;
+  background:#0f172a;
+  color:white;
+  text-align:center;
+}
+.section{padding:60px 20px;}
+.card{
+  background:#1e293b;
+  padding:25px;
+  margin:20px auto;
+  max-width:600px;
+  border-radius:15px;
+  text-align:left;
+}
+img{
+  width:100%;
+  margin-top:15px;
+  border-radius:10px;
+}
+button{
+  padding:8px 15px;
+  margin-top:10px;
+  border:none;
+  border-radius:15px;
+  background:crimson;
+  color:white;
+  cursor:pointer;
+}
+</style>
 </head>
 
 <body>
 
-<header>
-  <h1>Hi, I'm Sohail 👋</h1>
-  <p>Web Developer | Learner | Creator</p>
-</header>
-
 <div class="section">
-  <h2>About Me</h2>
-  <div class="card">
-    <p>I am building my personal blog where I share my daily thoughts and experiences.</p>
-  </div>
+<h1>Hi, I'm Sohail 👋</h1>
+<h2>My Posts</h2>
+<div id="posts"></div>
 </div>
-
-<div class="section">
-  <h2>My Posts</h2>
-  <div id="posts"></div>
-</div>
-
-<footer>
-  ©️ 2026 Sohail
-</footer>
 
 <script type="module">
 
 import { initializeApp } 
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 
-import { getFirestore, collection, getDocs } 
+import { getFirestore, collection, getDocs, deleteDoc, doc } 
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+import { getAuth, onAuthStateChanged } 
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAuKSZXx5xzNppUovxxpo089j4ffsCwEYI",
@@ -87,32 +68,51 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-async function loadPosts() {
+const ADMIN_EMAIL = "sohail34ks@gmail.com";
+let currentUser = null;
+
+onAuthStateChanged(auth, (user)=>{
+  currentUser = user;
+  loadPosts();
+});
+
+async function loadPosts(){
   const postsDiv = document.getElementById("posts");
   postsDiv.innerHTML = "";
 
-  const snapshot = await getDocs(collection(db, "posts"));
+  const snapshot = await getDocs(collection(db,"posts"));
 
-  snapshot.forEach((doc) => {
-    const data = doc.data();
+  snapshot.forEach((document)=>{
+    const data = document.data();
+    const postId = document.id;
 
     const post = document.createElement("div");
-    post.className = "card";
+    post.className="card";
 
     post.innerHTML = `
       <h3>${data.title}</h3>
       <p>${data.content}</p>
       ${data.imageUrl ? `<img src="${data.imageUrl}">` : ""}
+      ${
+        currentUser && currentUser.email===ADMIN_EMAIL
+        ? `<br><button onclick="deletePost('${postId}')">Delete</button>`
+        : ""
+      }
     `;
 
     postsDiv.appendChild(post);
   });
 }
 
+window.deletePost = async function(id){
+  await deleteDoc(doc(db,"posts",id));
+  loadPosts();
+};
+
 loadPosts();
 
 </script>
-
 </body>
 </html>
