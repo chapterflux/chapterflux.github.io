@@ -85,7 +85,7 @@
   import { initializeApp } 
   from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 
-  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } 
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } 
   from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
   import { getFirestore, collection, addDoc, serverTimestamp } 
@@ -105,13 +105,23 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
+  const ADMIN_EMAIL = "sohail34ks@gmail.com";
+
   window.login = function () {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
     signInWithEmailAndPassword(auth, email, password)
-      .then(() => {
+      .then((userCredential) => {
+
+        if (userCredential.user.email !== ADMIN_EMAIL) {
+          alert("Access Denied ❌");
+          signOut(auth);
+          return;
+        }
+
         document.getElementById("message").innerText = "Login Successful ✅";
+
       })
       .catch((error) => {
         document.getElementById("message").innerText = error.message;
@@ -119,14 +129,24 @@
   };
 
   onAuthStateChanged(auth, (user) => {
-    if (user) {
+
+    if (user && user.email === ADMIN_EMAIL) {
       document.getElementById("postForm").style.display = "block";
+    } else {
+      document.getElementById("postForm").style.display = "none";
     }
+
   });
 
   window.publishPost = async function () {
+
     const title = document.getElementById("title").value;
     const content = document.getElementById("content").value;
+
+    if (!title || !content) {
+      alert("Fill all fields ⚠");
+      return;
+    }
 
     await addDoc(collection(db, "posts"), {
       title: title,
@@ -135,6 +155,7 @@
     });
 
     alert("Post Published 🚀");
+
     document.getElementById("title").value = "";
     document.getElementById("content").value = "";
   };
