@@ -1,166 +1,141 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Panel</title>
+<meta charset="UTF-8">
+<title>Admin Panel</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #0f172a;
-      color: white;
-      text-align: center;
-    }
-
-    .container {
-      padding: 60px 20px;
-    }
-
-    .card {
-      background: #1e293b;
-      padding: 25px;
-      margin: 20px auto;
-      max-width: 500px;
-      border-radius: 15px;
-    }
-
-    input, textarea {
-      width: 90%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 8px;
-      border: none;
-      outline: none;
-    }
-
-    textarea {
-      height: 120px;
-    }
-
-    button {
-      padding: 10px 20px;
-      margin: 5px;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-      background: #3b82f6;
-      color: white;
-    }
-
-    button:hover {
-      background: #2563eb;
-    }
-
-    #postForm {
-      display: none;
-    }
-  </style>
+<style>
+body{
+  margin:0;
+  font-family:Segoe UI;
+  background:#0f172a;
+  color:white;
+  text-align:center;
+}
+.card{
+  background:#1e293b;
+  padding:25px;
+  margin:40px auto;
+  max-width:500px;
+  border-radius:15px;
+}
+input,textarea{
+  width:90%;
+  padding:10px;
+  margin-bottom:15px;
+  border-radius:8px;
+  border:none;
+}
+textarea{height:120px;}
+button{
+  padding:10px 20px;
+  border:none;
+  border-radius:20px;
+  background:#3b82f6;
+  color:white;
+  cursor:pointer;
+}
+#postForm{display:none;}
+</style>
 </head>
 
 <body>
 
-<div class="container">
+<h2>Admin Login</h2>
 
-  <h2>Admin Login</h2>
+<div class="card">
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<p id="msg"></p>
+</div>
 
-  <div class="card">
-    <input type="email" id="email" placeholder="Enter Email">
-    <input type="password" id="password" placeholder="Enter Password">
-    <button onclick="login()">Login</button>
-    <p id="message"></p>
-  </div>
-
-  <div id="postForm" class="card">
-    <h3>Create Post</h3>
-    <input type="text" id="title" placeholder="Post Title">
-    <textarea id="content" placeholder="Write your thoughts..."></textarea>
-    <button onclick="publishPost()">Publish</button>
-  </div>
-
+<div id="postForm" class="card">
+<h3>Create Post</h3>
+<input type="text" id="title" placeholder="Title">
+<textarea id="content" placeholder="Write..."></textarea>
+<input type="file" id="imageFile">
+<button onclick="publishPost()">Publish</button>
 </div>
 
 <script type="module">
 
-  import { initializeApp } 
-  from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { initializeApp } 
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 
-  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } 
-  from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } 
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
-  import { getFirestore, collection, addDoc, serverTimestamp } 
-  from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc } 
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAuKSZXx5xzNppUovxxpo089j4ffsCwEYI",
-    authDomain: "website-flux-1.firebaseapp.com",
-    projectId: "website-flux-1",
-    storageBucket: "website-flux-1.firebasestorage.app",
-    messagingSenderId: "130732049094",
-    appId: "1:130732049094:web:673a20cb507984a5430dc7",
-    measurementId: "G-ZG5C2JL079"
-  };
+import { getStorage, ref, uploadBytes, getDownloadURL } 
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+const firebaseConfig = {
+  apiKey: "AIzaSyAuKSZXx5xzNppUovxxpo089j4ffsCwEYI",
+  authDomain: "website-flux-1.firebaseapp.com",
+  projectId: "website-flux-1",
+  storageBucket: "website-flux-1.firebasestorage.app",
+  messagingSenderId: "130732049094",
+  appId: "1:130732049094:web:673a20cb507984a5430dc7"
+};
 
-  const ADMIN_EMAIL = "sohail34ks@gmail.com";
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
-  window.login = function () {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+const ADMIN_EMAIL="sohail34ks@gmail.com";
 
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
+window.login = function(){
+  const email=document.getElementById("email").value;
+  const password=document.getElementById("password").value;
 
-        if (userCredential.user.email !== ADMIN_EMAIL) {
-          alert("Access Denied ❌");
-          signOut(auth);
-          return;
-        }
-
-        document.getElementById("message").innerText = "Login Successful ✅";
-
-      })
-      .catch((error) => {
-        document.getElementById("message").innerText = error.message;
-      });
-  };
-
-  onAuthStateChanged(auth, (user) => {
-
-    if (user && user.email === ADMIN_EMAIL) {
-      document.getElementById("postForm").style.display = "block";
-    } else {
-      document.getElementById("postForm").style.display = "none";
-    }
-
-  });
-
-  window.publishPost = async function () {
-
-    const title = document.getElementById("title").value;
-    const content = document.getElementById("content").value;
-
-    if (!title || !content) {
-      alert("Fill all fields ⚠");
+  signInWithEmailAndPassword(auth,email,password)
+  .then((userCred)=>{
+    if(userCred.user.email!==ADMIN_EMAIL){
+      alert("Access Denied");
       return;
     }
+    document.getElementById("msg").innerText="Login Success";
+  })
+  .catch(err=>{
+    document.getElementById("msg").innerText=err.message;
+  });
+};
 
-    await addDoc(collection(db, "posts"), {
-      title: title,
-      content: content,
-      createdAt: serverTimestamp()
-    });
+onAuthStateChanged(auth,(user)=>{
+  if(user && user.email===ADMIN_EMAIL){
+    document.getElementById("postForm").style.display="block";
+  }
+});
 
-    alert("Post Published 🚀");
+window.publishPost = async function(){
+  const title=document.getElementById("title").value;
+  const content=document.getElementById("content").value;
+  const file=document.getElementById("imageFile").files[0];
 
-    document.getElementById("title").value = "";
-    document.getElementById("content").value = "";
-  };
+  let imageUrl="";
+
+  if(file){
+    const storageRef=ref(storage,"images/"+Date.now());
+    await uploadBytes(storageRef,file);
+    imageUrl=await getDownloadURL(storageRef);
+  }
+
+  await addDoc(collection(db,"posts"),{
+    title,
+    content,
+    imageUrl
+  });
+
+  alert("Published");
+  document.getElementById("title").value="";
+  document.getElementById("content").value="";
+  document.getElementById("imageFile").value="";
+};
 
 </script>
-
 </body>
 </html>
