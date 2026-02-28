@@ -21,11 +21,6 @@ body{
   border-radius:15px;
   text-align:left;
 }
-img{
-  width:100%;
-  margin-top:15px;
-  border-radius:10px;
-}
 button{
   padding:8px 15px;
   margin-top:10px;
@@ -73,7 +68,7 @@ const auth = getAuth(app);
 const ADMIN_EMAIL = "sohail34ks@gmail.com";
 let currentUser = null;
 
-onAuthStateChanged(auth, (user)=>{
+onAuthStateChanged(auth,(user)=>{
   currentUser = user;
   loadPosts();
 });
@@ -94,10 +89,9 @@ async function loadPosts(){
     post.innerHTML = `
       <h3>${data.title}</h3>
       <p>${data.content}</p>
-      ${data.imageUrl ? `<img src="${data.imageUrl}">` : ""}
       ${
         currentUser && currentUser.email===ADMIN_EMAIL
-        ? `<br><button onclick="deletePost('${postId}')">Delete</button>`
+        ? `<button onclick="deletePost('${postId}')">Delete</button>`
         : ""
       }
     `;
