@@ -35,31 +35,15 @@
       background: #1e293b;
       padding: 25px;
       margin: 20px auto;
-      max-width: 400px;
+      max-width: 600px;
       border-radius: 15px;
+      text-align: left;
     }
 
-    input {
-      width: 90%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 8px;
-      border: none;
-      outline: none;
-    }
-
-    button {
-      padding: 10px 20px;
-      margin: 5px;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-      background: #3b82f6;
-      color: white;
-    }
-
-    button:hover {
-      background: #2563eb;
+    img {
+      width: 100%;
+      margin-top: 15px;
+      border-radius: 10px;
     }
 
     footer {
@@ -79,41 +63,32 @@
 </header>
 
 <div class="section">
-  <h2>Login / Sign Up</h2>
-
+  <h2>About Me</h2>
   <div class="card">
-    <input type="email" id="email" placeholder="Enter Email">
-    <input type="password" id="password" placeholder="Enter Password">
-
-    <br>
-    <button onclick="signUp()">Sign Up</button>
-    <button onclick="login()">Login</button>
-
-    <p id="message"></p>
+    <p>I am building my personal blog where I share my daily thoughts and experiences.</p>
   </div>
 </div>
 
 <div class="section">
-  <h2>About Me</h2>
-  <div class="card">
-    <p>I am building my professional website using GitHub Pages.</p>
-  </div>
+  <h2>My Posts</h2>
+  <div id="posts"></div>
 </div>
 
 <footer>
-  © 2026 Sohail
+  ©️ 2026 Sohail
 </footer>
 
 <script type="module">
 
   /* =========================
-     🔹 IMPORTS (ALWAYS TOP)
+     🔹 IMPORTS
   ========================== */
 
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword }
-  from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+  import { initializeApp } 
+  from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+
+  import { getFirestore, collection, getDocs, query, orderBy } 
+  from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 
   /* =========================
@@ -136,44 +111,37 @@
   ========================== */
 
   const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const auth = getAuth(app);
+  const db = getFirestore(app);
 
 
   /* =========================
-     🔹 SIGN UP FUNCTION
+     🔹 LOAD POSTS FROM FIRESTORE
   ========================== */
 
-  window.signUp = function () {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+  async function loadPosts() {
+    const postsDiv = document.getElementById("posts");
+    postsDiv.innerHTML = "";
 
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(() => {
-        document.getElementById("message").innerText = "Account Created ✅";
-      })
-      .catch((error) => {
-        document.getElementById("message").innerText = error.message;
-      });
-  };
+    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
 
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
 
-  /* =========================
-     🔹 LOGIN FUNCTION
-  ========================== */
+      const postElement = document.createElement("div");
+      postElement.className = "card";
 
-  window.login = function () {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+      postElement.innerHTML = `
+        <h3>${data.title}</h3>
+        <p>${data.content}</p>
+        ${data.imageUrl ? `<img src="${data.imageUrl}">` : ""}
+      `;
 
-    signInWithEmailAndPassword(auth, email, password)
-      .then(() => {
-        document.getElementById("message").innerText = "Login Successful 🎉";
-      })
-      .catch((error) => {
-        document.getElementById("message").innerText = error.message;
-      });
-  };
+      postsDiv.appendChild(postElement);
+    });
+  }
+
+  loadPosts();
 
 </script>
 
